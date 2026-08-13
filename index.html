@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ular Tangga Pastel — Multiplayer</title>
+<title>Ular Tangga Pastel — Multiplayer (Firebase)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -12,19 +12,12 @@
     --paper: #FFFDF9;
     --ink: #4A4459;
     --ink-soft: #8C86A3;
-
     --sky-deep: #8FB4EE;
     --mint-deep: #58B78E;
     --pink-deep: #FF6E90;
-
     --snake-dark: #4E9E76;
     --ladder-dark: #B4823E;
-
-    --p1: #FF8FA8;
-    --p2: #6FA8E8;
-    --p3: #6FCBA3;
-    --p4: #F7CF5C;
-
+    --p1: #FF8FA8; --p2: #6FA8E8; --p3: #6FCBA3; --p4: #F7CF5C;
     --shadow: 0 8px 24px rgba(120, 100, 140, 0.16);
     --shadow-sm: 0 3px 10px rgba(120, 100, 140, 0.14);
   }
@@ -44,6 +37,13 @@
   h1{ font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(26px,5vw,40px); margin:4px 0 2px; color:#6B5B95; }
   .subtitle{ font-size:13px; color:var(--ink-soft); font-weight:600; }
 
+  .setup-banner{
+    max-width: 620px; margin: 0 auto 18px; background:#FFF3D6; border:2px solid #F3D98A;
+    border-radius:16px; padding:14px 18px; font-size:13px; font-weight:700; color:#7A5C10; display:none;
+  }
+  .setup-banner.show{ display:block; }
+  .setup-banner code{ background:#fff; padding:1px 6px; border-radius:6px; }
+
   .card{
     max-width: 440px; margin: 26px auto; background:var(--paper);
     border-radius:26px; box-shadow:var(--shadow); padding:28px 26px 26px; text-align:center;
@@ -52,63 +52,37 @@
   .card p.hint{ font-size:13px; color:var(--ink-soft); margin:0 0 18px; font-weight:600; }
 
   .tabs{ display:flex; gap:8px; margin-bottom:20px; background:#F3EEFB; padding:4px; border-radius:14px; }
-  .tab{
-    flex:1; padding:9px; border:none; border-radius:11px; background:transparent;
-    font-family:'Baloo 2',sans-serif; font-weight:700; font-size:14px; color:var(--ink-soft); cursor:pointer;
-  }
+  .tab{ flex:1; padding:9px; border:none; border-radius:11px; background:transparent; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:14px; color:var(--ink-soft); cursor:pointer; }
   .tab.active{ background:#fff; color:var(--ink); box-shadow:var(--shadow-sm); }
 
   .field{ text-align:left; margin-bottom:14px; }
   .field label{ display:block; font-size:12px; font-weight:800; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:5px; }
-  .field input{
-    width:100%; padding:11px 14px; border-radius:12px; border:2px solid #ECE5F7;
-    font-family:'Nunito',sans-serif; font-weight:700; font-size:15px; color:var(--ink); background:#FFFDF9; outline:none;
-  }
+  .field input{ width:100%; padding:11px 14px; border-radius:12px; border:2px solid #ECE5F7; font-family:'Nunito',sans-serif; font-weight:700; font-size:15px; color:var(--ink); background:#FFFDF9; outline:none; }
   .field input:focus{ border-color:var(--sky-deep); }
   .field input.code{ letter-spacing:4px; text-transform:uppercase; text-align:center; font-family:'Baloo 2',sans-serif; font-size:20px; }
 
-  .primary-btn{
-    width:100%; padding:14px; border:none; border-radius:16px; color:#fff;
-    font-family:'Baloo 2',sans-serif; font-size:17px; font-weight:700; cursor:pointer;
-    box-shadow:var(--shadow-sm); transition:transform .12s ease;
-    background: linear-gradient(145deg, var(--mint-deep), #58B78E);
-  }
+  .primary-btn{ width:100%; padding:14px; border:none; border-radius:16px; color:#fff; font-family:'Baloo 2',sans-serif; font-size:17px; font-weight:700; cursor:pointer; box-shadow:var(--shadow-sm); transition:transform .12s ease; background: linear-gradient(145deg, var(--mint-deep), #58B78E); }
   .primary-btn:hover{ transform:translateY(-2px); }
   .primary-btn:disabled{ opacity:0.55; cursor:default; transform:none; }
   .error-msg{ min-height:18px; font-size:13px; font-weight:700; color:#E0637A; margin-top:10px; }
 
-  /* LOBBY */
-  .room-code-box{
-    background: linear-gradient(145deg, #E9F3FF, #F3EEFB);
-    border-radius:18px; padding:16px; margin-bottom:18px;
-  }
+  .room-code-box{ background: linear-gradient(145deg, #E9F3FF, #F3EEFB); border-radius:18px; padding:16px; margin-bottom:18px; }
   .room-code-box .lbl{ font-size:11px; font-weight:800; color:var(--ink-soft); text-transform:uppercase; letter-spacing:1px; }
   .room-code-box .code{ font-family:'Baloo 2',sans-serif; font-size:34px; font-weight:800; color:#6B5B95; letter-spacing:6px; margin:4px 0 8px; }
-  .copy-btn{
-    border:2px solid #D9CDF0; background:#fff; padding:7px 14px; border-radius:10px;
-    font-weight:700; font-size:12px; color:var(--ink); cursor:pointer;
-  }
+  .copy-btn{ border:2px solid #D9CDF0; background:#fff; padding:7px 14px; border-radius:10px; font-weight:700; font-size:12px; color:var(--ink); cursor:pointer; }
 
   .player-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:18px; }
-  .player-row{
-    display:flex; align-items:center; gap:10px; padding:10px 12px; background:#FFFDF9;
-    border:2px solid #F0EAF9; border-radius:12px; font-weight:700; font-size:14px;
-  }
+  .player-row{ display:flex; align-items:center; gap:10px; padding:10px 12px; background:#FFFDF9; border:2px solid #F0EAF9; border-radius:12px; font-weight:700; font-size:14px; }
   .dot{ width:16px; height:16px; border-radius:50%; flex-shrink:0; box-shadow: inset 0 -2px 3px rgba(0,0,0,0.12); }
   .player-row .you-tag{ margin-left:auto; font-size:11px; font-weight:800; color:var(--mint-deep); }
   .empty-slot{ opacity:0.4; font-style:normal; }
   .waiting-msg{ font-size:13px; color:var(--ink-soft); font-weight:700; margin-bottom:6px; }
 
-  /* GAME */
   .game-wrap{ display:none; gap:22px; align-items:flex-start; justify-content:center; flex-wrap:wrap; }
   .game-wrap.visible{ display:flex; }
   .board-panel{ background:var(--paper); border-radius:26px; box-shadow:var(--shadow); padding:16px; }
   .board-outer{ position:relative; width:min(90vw,560px); aspect-ratio:1/1; }
-  .board-grid{
-    position:relative; width:100%; height:100%; display:grid;
-    grid-template-columns:repeat(10,1fr); grid-template-rows:repeat(10,1fr);
-    border-radius:18px; overflow:hidden; border:5px solid #EFE6F9;
-  }
+  .board-grid{ position:relative; width:100%; height:100%; display:grid; grid-template-columns:repeat(10,1fr); grid-template-rows:repeat(10,1fr); border-radius:18px; overflow:hidden; border:5px solid #EFE6F9; }
   .cell{ position:relative; font-family:'Baloo 2',sans-serif; font-size:clamp(8px,1.6vw,12px); font-weight:700; color:rgba(74,68,89,0.45); padding:3px 4px; }
   .cell .tokens{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:2px; flex-wrap:wrap; padding:10px 2px 2px; }
   .token{ width:22%; aspect-ratio:1/1; border-radius:50%; box-shadow:0 2px 4px rgba(0,0,0,0.25), inset 0 -2px 2px rgba(0,0,0,0.15); border:1.5px solid rgba(255,255,255,0.7); }
@@ -151,6 +125,8 @@
   .legend .sw{ width:12px; height:3px; border-radius:2px; display:inline-block; }
 
   .conn-note{ font-size:11px; color:var(--ink-soft); font-weight:700; text-align:center; margin-top:4px; }
+  .conn-dot{ display:inline-block; width:8px; height:8px; border-radius:50%; background:#58B78E; margin-right:4px; }
+  .conn-dot.off{ background:#E0637A; }
 
   .win-overlay{ display:none; position:fixed; inset:0; background:rgba(74,68,89,0.45); align-items:center; justify-content:center; z-index:50; }
   .win-overlay.visible{ display:flex; }
@@ -159,7 +135,6 @@
   .win-card h2{ font-family:'Baloo 2',sans-serif; font-size:22px; margin:4px 0 4px; color:#6B5B95; }
   .win-card p{ font-size:14px; color:var(--ink-soft); font-weight:600; margin:0 0 18px; }
   .again-btn{ padding:12px 24px; border:none; border-radius:14px; background:linear-gradient(145deg,var(--sky-deep),#6E97D6); color:#fff; font-family:'Baloo 2',sans-serif; font-size:15px; font-weight:700; cursor:pointer; }
-  .again-btn.secondary{ background:#EDE7F9; color:var(--ink); margin-top:8px; }
 
   @media (max-width:640px){ .side-panel{ width:min(90vw,560px); } }
 </style>
@@ -169,10 +144,13 @@
 <div class="app">
   <header>
     <h1>🐍 Ular &amp; Tangga 🪜</h1>
-    <div class="subtitle">Multiplayer — main bareng dari HP masing-masing, siapa cepat sampai 100 menang!</div>
+    <div class="subtitle">Multiplayer online — main bareng dari HP masing-masing lewat internet</div>
   </header>
 
-  <!-- HOME -->
+  <div class="setup-banner" id="setupBanner">
+    ⚠️ Firebase belum dikonfigurasi. Buka file ini di editor teks, cari <code>firebaseConfig</code> di bagian bawah file, lalu isi dengan konfigurasi project Firebase kamu sendiri. Lihat komentar di dalam kode untuk langkah lengkapnya.
+  </div>
+
   <div class="card" id="homeCard">
     <h2>Gabung Permainan</h2>
     <p class="hint">Buat room baru lalu bagikan kodenya, atau masukkan kode dari temanmu.</p>
@@ -180,31 +158,18 @@
       <button class="tab active" id="tabCreate">Buat Room</button>
       <button class="tab" id="tabJoin">Gabung Room</button>
     </div>
-
     <div id="createPane">
-      <div class="field">
-        <label>Nama Kamu</label>
-        <input type="text" id="createName" maxlength="14" placeholder="cth: Budi">
-      </div>
+      <div class="field"><label>Nama Kamu</label><input type="text" id="createName" maxlength="14" placeholder="cth: Budi"></div>
       <button class="primary-btn" id="createBtn">Buat Room Baru 🎲</button>
     </div>
-
     <div id="joinPane" style="display:none;">
-      <div class="field">
-        <label>Kode Room</label>
-        <input type="text" id="joinCode" class="code" maxlength="4" placeholder="ABCD">
-      </div>
-      <div class="field">
-        <label>Nama Kamu</label>
-        <input type="text" id="joinName" maxlength="14" placeholder="cth: Siti">
-      </div>
+      <div class="field"><label>Kode Room</label><input type="text" id="joinCode" class="code" maxlength="4" placeholder="ABCD"></div>
+      <div class="field"><label>Nama Kamu</label><input type="text" id="joinName" maxlength="14" placeholder="cth: Siti"></div>
       <button class="primary-btn" id="joinBtn">Gabung Room 🙋</button>
     </div>
-
     <div class="error-msg" id="homeError"></div>
   </div>
 
-  <!-- LOBBY -->
   <div class="card" id="lobbyCard" style="display:none;">
     <h2>Ruang Tunggu</h2>
     <div class="room-code-box">
@@ -218,7 +183,6 @@
     <div class="error-msg" id="lobbyError"></div>
   </div>
 
-  <!-- GAME -->
   <div class="game-wrap" id="gameWrap">
     <div class="board-panel">
       <div class="board-outer">
@@ -230,7 +194,6 @@
         <span><i class="sw" style="background:var(--snake-dark)"></i> Ular = turun</span>
       </div>
     </div>
-
     <div class="side-panel">
       <div class="turn-card">
         <div class="turn-label">Giliran</div>
@@ -246,12 +209,11 @@
           <div class="event-msg" id="eventMsg"></div>
         </div>
       </div>
-
       <div class="score-card">
         <h3>Posisi Pemain</h3>
         <div id="scoreList"></div>
       </div>
-      <div class="conn-note">Room: <span id="gameCodeTag">----</span> · tersambung otomatis tiap 1.5 detik</div>
+      <div class="conn-note"><span class="conn-dot" id="connDot"></span><span id="connText">Tersambung — Room <span id="gameCodeTag">----</span></span></div>
     </div>
   </div>
 </div>
@@ -266,7 +228,68 @@
   </div>
 </div>
 
-<script>
+<script type="module">
+/* ======================================================================
+   LANGKAH SETUP FIREBASE (lakukan sekali sebelum membagikan file ini)
+   ======================================================================
+   1. Buka https://console.firebase.google.com → klik "Add project" →
+      beri nama bebas (mis. "ular-tangga") → ikuti langkah sampai selesai
+      (boleh matikan Google Analytics, tidak wajib).
+
+   2. Di dashboard project, klik ikon web "</>" untuk mendaftarkan web app.
+      Beri nama app bebas, klik "Register app". Firebase akan menampilkan
+      objek firebaseConfig seperti di bawah ini — SALIN nilai-nilainya.
+
+   3. Di menu kiri, buka "Build" → "Realtime Database" → "Create Database".
+      Pilih lokasi server terdekat, lalu pilih mode "Start in test mode"
+      (supaya bisa langsung dibaca/ditulis tanpa login, cocok untuk main
+      santai bareng teman). Test mode otomatis kadaluarsa ~30 hari — kalau
+      lewat, buka tab "Rules" dan set manual seperti ini lalu klik Publish:
+
+         {
+           "rules": {
+             "rooms": {
+               ".read": true,
+               ".write": true
+             }
+           }
+         }
+
+      Catatan keamanan: rules ini membuat data room bisa dibaca/ditulis
+      siapa saja yang tahu URL database-nya. Cukup aman untuk main santai
+      (kode room 4 karakter acak, data cuma nama & posisi bidak), tapi
+      jangan taruh info pribadi/sensitif di dalamnya.
+
+   4. Tempel firebaseConfig kamu menggantikan objek placeholder di bawah
+      ini (cari kata FIREBASE_CONFIG_DI_SINI), simpan file, lalu bagikan
+      file HTML ini ke teman-teman — mereka buka langsung di browser HP,
+      tidak perlu install apa-apa.
+   ====================================================================== */
+
+const firebaseConfig = {
+  apiKey: "FIREBASE_CONFIG_DI_SINI",
+  authDomain: "FIREBASE_CONFIG_DI_SINI",
+  databaseURL: "FIREBASE_CONFIG_DI_SINI",
+  projectId: "FIREBASE_CONFIG_DI_SINI",
+  storageBucket: "FIREBASE_CONFIG_DI_SINI",
+  messagingSenderId: "FIREBASE_CONFIG_DI_SINI",
+  appId: "FIREBASE_CONFIG_DI_SINI"
+};
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getDatabase, ref, set, get, onValue, off
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+const isConfigured = !Object.values(firebaseConfig).some(v => v === "FIREBASE_CONFIG_DI_SINI");
+document.getElementById('setupBanner').classList.toggle('show', !isConfigured);
+
+let app, db;
+if(isConfigured){
+  app = initializeApp(firebaseConfig);
+  db = getDatabase(app);
+}
+
 (function(){
   const PLAYER_COLORS = ['#FF8FA8','#6FA8E8','#6FCBA3','#F7CF5C'];
   const LADDERS = { 4:25, 13:46, 33:49, 42:63, 50:69, 62:81, 74:92 };
@@ -276,17 +299,15 @@
   let myId = 'p_' + Math.random().toString(36).slice(2,10);
   let myCode = null;
   let isHost = false;
-  let pollTimer = null;
   let localState = null;
-  let rendering = false; // guard while local roll animation plays
+  let rendering = false;
   let boardBuilt = false;
+  let roomRef = null;
 
-  // ---------- DOM ----------
   const homeCard = document.getElementById('homeCard');
   const lobbyCard = document.getElementById('lobbyCard');
   const gameWrap = document.getElementById('gameWrap');
   const winOverlay = document.getElementById('winOverlay');
-
   const tabCreate = document.getElementById('tabCreate');
   const tabJoin = document.getElementById('tabJoin');
   const createPane = document.getElementById('createPane');
@@ -297,14 +318,12 @@
   const createBtn = document.getElementById('createBtn');
   const joinBtn = document.getElementById('joinBtn');
   const homeError = document.getElementById('homeError');
-
   const lobbyCode = document.getElementById('lobbyCode');
   const lobbyPlayers = document.getElementById('lobbyPlayers');
   const lobbyWaiting = document.getElementById('lobbyWaiting');
   const startGameBtn = document.getElementById('startGameBtn');
   const lobbyError = document.getElementById('lobbyError');
   const copyBtn = document.getElementById('copyBtn');
-
   const boardGrid = document.getElementById('boardGrid');
   const overlaySvg = document.getElementById('overlaySvg');
   const turnName = document.getElementById('turnName');
@@ -314,13 +333,17 @@
   const eventMsg = document.getElementById('eventMsg');
   const scoreList = document.getElementById('scoreList');
   const gameCodeTag = document.getElementById('gameCodeTag');
-
+  const connDot = document.getElementById('connDot');
   const winName = document.getElementById('winName');
   const winSub = document.getElementById('winSub');
   const againBtn = document.getElementById('againBtn');
   const winWaitNote = document.getElementById('winWaitNote');
 
-  // ---------- tabs ----------
+  if(!isConfigured){
+    [createBtn, joinBtn].forEach(b => b.disabled = true);
+    homeError.textContent = 'Firebase belum dikonfigurasi (lihat pesan kuning di atas).';
+  }
+
   tabCreate.addEventListener('click', ()=>{
     tabCreate.classList.add('active'); tabJoin.classList.remove('active');
     createPane.style.display='block'; joinPane.style.display='none'; homeError.textContent='';
@@ -330,48 +353,38 @@
     joinPane.style.display='block'; createPane.style.display='none'; homeError.textContent='';
   });
 
-  // ---------- storage helpers ----------
-  async function getRoom(code){
+  async function getRoomOnce(code){
     try{
-      const res = await window.storage.get('room-' + code, true);
-      if(!res || !res.value) return null;
-      return JSON.parse(res.value);
-    }catch(e){ return null; }
+      const snap = await get(ref(db, 'rooms/' + code));
+      return snap.exists() ? snap.val() : null;
+    }catch(e){ console.error(e); return null; }
   }
-  async function setRoom(code, state){
+  async function writeRoom(code, state){
     try{
-      state.updatedAt = Date.now();
-      const res = await window.storage.set('room-' + code, JSON.stringify(state), true);
-      return !!res;
-    }catch(e){ return false; }
+      await set(ref(db, 'rooms/' + code), state);
+      return true;
+    }catch(e){ console.error(e); return false; }
   }
   function randomCode(){
-    let c = '';
-    for(let i=0;i<4;i++) c += CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)];
+    let c=''; for(let i=0;i<4;i++) c += CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)];
     return c;
   }
 
-  // ---------- create / join ----------
   createBtn.addEventListener('click', async ()=>{
     const name = createName.value.trim() || 'Pemain 1';
-    createBtn.disabled = true;
-    homeError.textContent = '';
+    createBtn.disabled = true; homeError.textContent = '';
     let code, exists;
-    do{
-      code = randomCode();
-      exists = await getRoom(code);
-    } while(exists);
+    do{ code = randomCode(); exists = await getRoomOnce(code); } while(exists);
 
     const state = {
-      code, status:'lobby',
+      status:'lobby',
       players:[{id:myId, name, colorIdx:0}],
       positions:{ [myId]: 1 },
-      turnIndex:0, lastRoll:null, lastEvent:'', lastEventType:'',
-      winnerId:null
+      turnIndex:0, lastRoll:null, lastEvent:'', lastEventType:'', winnerId:null
     };
-    const ok = await setRoom(code, state);
+    const ok = await writeRoom(code, state);
     createBtn.disabled = false;
-    if(!ok){ homeError.textContent = 'Gagal membuat room, coba lagi.'; return; }
+    if(!ok){ homeError.textContent = 'Gagal membuat room. Cek koneksi internet & konfigurasi Firebase.'; return; }
     myCode = code; isHost = true; localState = state;
     enterLobby();
   });
@@ -380,9 +393,8 @@
     const code = joinCode.value.trim().toUpperCase();
     const name = joinName.value.trim() || 'Pemain';
     if(code.length !== 4){ homeError.textContent = 'Kode room harus 4 karakter.'; return; }
-    joinBtn.disabled = true;
-    homeError.textContent = '';
-    const state = await getRoom(code);
+    joinBtn.disabled = true; homeError.textContent = '';
+    const state = await getRoomOnce(code);
     joinBtn.disabled = false;
     if(!state){ homeError.textContent = 'Room tidak ditemukan. Cek kembali kodenya.'; return; }
     if(state.status !== 'lobby'){ homeError.textContent = 'Permainan di room ini sudah dimulai.'; return; }
@@ -390,7 +402,7 @@
 
     state.players.push({ id:myId, name, colorIdx: state.players.length });
     state.positions[myId] = 1;
-    const ok = await setRoom(code, state);
+    const ok = await writeRoom(code, state);
     if(!ok){ homeError.textContent = 'Gagal bergabung, coba lagi.'; return; }
     myCode = code; isHost = false; localState = state;
     enterLobby();
@@ -403,14 +415,27 @@
     setTimeout(()=> copyBtn.textContent = 'Salin Kode', 1200);
   });
 
-  // ---------- lobby ----------
   function enterLobby(){
     homeCard.style.display = 'none';
     lobbyCard.style.display = 'block';
     lobbyCode.textContent = myCode;
     gameCodeTag.textContent = myCode;
     renderLobby(localState);
-    startPolling();
+    listenRoom();
+  }
+
+  function listenRoom(){
+    roomRef = ref(db, 'rooms/' + myCode);
+    onValue(roomRef, (snapshot)=>{
+      const state = snapshot.val();
+      connDot.classList.remove('off');
+      if(!state) return;
+      localState = state;
+      applyState(state);
+    }, (err)=>{
+      console.error(err);
+      connDot.classList.add('off');
+    });
   }
 
   function renderLobby(state){
@@ -425,57 +450,34 @@
         dot.style.background = PLAYER_COLORS[i];
         const label = document.createElement('span');
         label.textContent = p.name + (i===0 ? ' (host)' : '');
-        row.appendChild(dot);
-        row.appendChild(label);
+        row.appendChild(dot); row.appendChild(label);
         if(p.id === myId){
           const tag = document.createElement('span');
-          tag.className = 'you-tag';
-          tag.textContent = 'KAMU';
+          tag.className = 'you-tag'; tag.textContent = 'KAMU';
           row.appendChild(tag);
         }
       } else {
         dot.style.background = '#EDE7F9';
         const label = document.createElement('span');
-        label.className = 'empty-slot';
-        label.textContent = 'Menunggu pemain…';
-        row.appendChild(dot);
-        row.appendChild(label);
+        label.className = 'empty-slot'; label.textContent = 'Menunggu pemain…';
+        row.appendChild(dot); row.appendChild(label);
       }
       lobbyPlayers.appendChild(row);
     }
     lobbyWaiting.style.display = state.players.length < 2 ? 'block' : 'none';
-    lobbyWaiting.textContent = state.players.length < 2
-      ? 'Menunggu minimal 2 pemain untuk mulai…'
-      : '';
-    if(isHost && state.players.length >= 2){
-      startGameBtn.style.display = 'block';
-    } else {
-      startGameBtn.style.display = 'none';
-    }
+    lobbyWaiting.textContent = state.players.length < 2 ? 'Menunggu minimal 2 pemain untuk mulai…' : '';
+    startGameBtn.style.display = (isHost && state.players.length >= 2) ? 'block' : 'none';
   }
 
   startGameBtn.addEventListener('click', async ()=>{
     startGameBtn.disabled = true;
-    const fresh = await getRoom(myCode) || localState;
+    const fresh = await getRoomOnce(myCode) || localState;
     fresh.status = 'playing';
     fresh.turnIndex = 0;
-    const ok = await setRoom(myCode, fresh);
+    const ok = await writeRoom(myCode, fresh);
     startGameBtn.disabled = false;
-    if(ok){ localState = fresh; }
-    else { lobbyError.textContent = 'Gagal memulai, coba lagi.'; }
+    if(!ok){ lobbyError.textContent = 'Gagal memulai, coba lagi.'; }
   });
-
-  // ---------- polling ----------
-  function startPolling(){
-    if(pollTimer) clearInterval(pollTimer);
-    pollTimer = setInterval(async ()=>{
-      if(!myCode || rendering) return;
-      const state = await getRoom(myCode);
-      if(!state) return;
-      localState = state;
-      applyState(state);
-    }, 1500);
-  }
 
   function applyState(state){
     if(state.status === 'lobby'){
@@ -484,24 +486,18 @@
       winOverlay.classList.remove('visible');
       renderLobby(state);
     } else if(state.status === 'playing'){
-      lobbyCard.style.display = 'none';
-      homeCard.style.display = 'none';
+      lobbyCard.style.display = 'none'; homeCard.style.display = 'none';
       winOverlay.classList.remove('visible');
       gameWrap.classList.add('visible');
       if(!boardBuilt){ buildBoard(); boardBuilt = true; }
-      renderTokens(state);
-      renderScore(state);
-      updateTurnUI(state);
+      renderTokens(state); renderScore(state); updateTurnUI(state);
     } else if(state.status === 'finished'){
       gameWrap.classList.add('visible');
       if(!boardBuilt){ buildBoard(); boardBuilt = true; }
-      renderTokens(state);
-      renderScore(state);
-      showWin(state);
+      renderTokens(state); renderScore(state); showWin(state);
     }
   }
 
-  // ---------- board ----------
   function cellRC(num){
     const rowFromBottom = Math.floor((num-1)/10);
     const row = 9 - rowFromBottom;
@@ -524,8 +520,7 @@
       label.textContent = num;
       cell.appendChild(label);
       const tokens = document.createElement('div');
-      tokens.className = 'tokens';
-      tokens.id = 'tokens-' + num;
+      tokens.className = 'tokens'; tokens.id = 'tokens-' + num;
       cell.appendChild(tokens);
       boardGrid.appendChild(cell);
     }
@@ -548,13 +543,9 @@
         const nx=-dy/len, ny=dx/len, offset=1.6;
         [-1,1].forEach(side=>{
           const line = document.createElementNS(ns,'line');
-          line.setAttribute('x1', a.x+nx*offset*side);
-          line.setAttribute('y1', a.y+ny*offset*side);
-          line.setAttribute('x2', b.x+nx*offset*side);
-          line.setAttribute('y2', b.y+ny*offset*side);
-          line.setAttribute('stroke', colorEdge);
-          line.setAttribute('stroke-width','1.1');
-          line.setAttribute('stroke-linecap','round');
+          line.setAttribute('x1', a.x+nx*offset*side); line.setAttribute('y1', a.y+ny*offset*side);
+          line.setAttribute('x2', b.x+nx*offset*side); line.setAttribute('y2', b.y+ny*offset*side);
+          line.setAttribute('stroke', colorEdge); line.setAttribute('stroke-width','1.1'); line.setAttribute('stroke-linecap','round');
           g.appendChild(line);
         });
         for(let i=1;i<5;i++){
@@ -590,8 +581,7 @@
       const holder = document.getElementById('tokens-' + pos);
       if(!holder) return;
       const tok = document.createElement('div');
-      tok.className = 'token';
-      tok.style.background = PLAYER_COLORS[i];
+      tok.className = 'token'; tok.style.background = PLAYER_COLORS[i];
       holder.appendChild(tok);
     });
   }
@@ -606,8 +596,7 @@
       const nameSpan = document.createElement('span');
       nameSpan.textContent = p.name + (p.id===myId ? ' (kamu)' : '') + (state.winnerId===p.id ? ' 🏆' : '');
       const pos = document.createElement('span');
-      pos.className = 'pos';
-      pos.textContent = 'kotak ' + (state.positions[p.id] || 1);
+      pos.className = 'pos'; pos.textContent = 'kotak ' + (state.positions[p.id] || 1);
       row.appendChild(dot); row.appendChild(nameSpan); row.appendChild(pos);
       scoreList.appendChild(row);
     });
@@ -630,23 +619,18 @@
   function setDiceFace(n){
     const patterns = {1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
     const on = new Set(patterns[n] || []);
-    document.querySelectorAll('.pip').forEach(p=>{
-      p.classList.toggle('on', on.has(+p.dataset.i));
-    });
+    document.querySelectorAll('.pip').forEach(p=> p.classList.toggle('on', on.has(+p.dataset.i)));
   }
 
-  // ---------- rolling (only current player's device runs this) ----------
   rollBtn.addEventListener('click', async ()=>{
     if(!localState || rendering) return;
     const state = localState;
     const me = state.players[state.turnIndex];
     if(!me || me.id !== myId) return;
 
-    rendering = true;
-    rollBtn.disabled = true;
+    rendering = true; rollBtn.disabled = true;
     dice.classList.add('rolling');
-    eventMsg.textContent = '';
-    eventMsg.className = 'event-msg';
+    eventMsg.textContent = ''; eventMsg.className = 'event-msg';
 
     let ticks = 0;
     const timer = setInterval(()=>{
@@ -663,8 +647,7 @@
   });
 
   async function finishRoll(roll){
-    // get freshest state to avoid clobbering
-    let state = await getRoom(myCode);
+    let state = await getRoomOnce(myCode);
     if(!state) state = localState;
 
     const myIdx = state.turnIndex;
@@ -703,10 +686,8 @@
 
     localState = state;
     applyState(state);
-    await setRoom(myCode, state);
-
+    await writeRoom(myCode, state);
     rendering = false;
-    rollBtn.disabled = true; // will be re-enabled by applyState if it's my turn again
   }
 
   function showWin(state){
@@ -718,26 +699,20 @@
       winSub.textContent = (w.id===myId ? 'Selamat, kamu' : w.name) + ' sampai duluan di kotak 100!';
     }
     if(state.players[0] && state.players[0].id === myId){
-      againBtn.style.display = 'inline-block';
-      winWaitNote.textContent = '';
+      againBtn.style.display = 'inline-block'; winWaitNote.textContent = '';
     } else {
-      againBtn.style.display = 'none';
-      winWaitNote.textContent = 'Menunggu host memulai permainan baru…';
+      againBtn.style.display = 'none'; winWaitNote.textContent = 'Menunggu host memulai permainan baru…';
     }
   }
 
   againBtn.addEventListener('click', async ()=>{
-    let state = await getRoom(myCode) || localState;
-    state.status = 'lobby';
-    state.turnIndex = 0;
-    state.winnerId = null;
-    state.lastEvent = ''; state.lastEventType=''; state.lastRoll=null;
+    let state = await getRoomOnce(myCode) || localState;
+    state.status = 'lobby'; state.turnIndex = 0; state.winnerId = null;
+    state.lastEvent=''; state.lastEventType=''; state.lastRoll=null;
     state.players.forEach(p=> state.positions[p.id] = 1);
-    await setRoom(myCode, state);
-    localState = state;
+    await writeRoom(myCode, state);
     winOverlay.classList.remove('visible');
     gameWrap.classList.remove('visible');
-    applyState(state);
   });
 
 })();
