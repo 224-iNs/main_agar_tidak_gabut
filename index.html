@@ -147,15 +147,18 @@
 
   /* ---------- CHAT ---------- */
   .chat-card{
-    width: min(94vw, 900px);
-    margin: 22px auto 0;
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    margin: 0;
     background: var(--paper);
-    border-radius: 24px;
+    border-radius: 22px;
     box-shadow: var(--shadow);
-    padding: 16px 18px 14px;
+    padding: 14px 14px 12px;
     display:flex;
     flex-direction:column;
-    gap:10px;
+    gap:8px;
   }
   .chat-head h3{
     font-family:'Baloo 2', sans-serif;
@@ -169,7 +172,7 @@
   .chat-head h3 span{ color: var(--ink-soft); font-weight:700; font-size:13px; }
 
   .chat-messages{
-    height: 190px;
+    height: 150px;
     overflow-y: auto;
     display:flex;
     flex-direction:column;
@@ -225,9 +228,11 @@
     display:flex;
     gap:8px;
     margin:0;
+    width:100%;
   }
   .chat-input-row input{
-    flex:1;
+    flex:1 1 auto;
+    min-width: 0;
     padding:10px 14px;
     border-radius:12px;
     border:2px solid #ECE5F7;
@@ -240,6 +245,7 @@
   }
   .chat-input-row input:focus{ border-color: var(--sky-deep); }
   .chat-input-row button{
+    flex: 0 0 auto;
     padding: 10px 18px;
     border:none;
     border-radius:12px;
@@ -327,20 +333,19 @@
         <h3>Posisi Pemain</h3>
         <div id="scoreList"></div>
       </div>
+      <div class="chat-card" id="chatCard" style="display:none;">
+        <div class="chat-head">
+          <h3>💬 Obrolan Room <span id="chatRoomTag">----</span></h3>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <form class="chat-input-row" id="chatForm">
+          <input type="text" id="chatInput" maxlength="200" placeholder="Ketik pesan…" autocomplete="off">
+          <button type="submit" id="chatSendBtn">Kirim</button>
+        </form>
+      </div>
       <div class="conn-note"><span class="conn-dot" id="connDot"></span><span id="connText">Tersambung — Room <span id="gameCodeTag">----</span></span></div>
     </div>
   </div>
-</div>
-
-<div class="chat-card" id="chatCard" style="display:none;">
-  <div class="chat-head">
-    <h3>💬 Obrolan Room <span id="chatRoomTag">----</span></h3>
-  </div>
-  <div class="chat-messages" id="chatMessages"></div>
-  <form class="chat-input-row" id="chatForm">
-    <input type="text" id="chatInput" maxlength="200" placeholder="Ketik pesan…" autocomplete="off">
-    <button type="submit" id="chatSendBtn">Kirim</button>
-  </form>
 </div>
 
 <div class="win-overlay" id="winOverlay">
