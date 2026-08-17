@@ -490,17 +490,18 @@ if(isConfigured){
       lobbyCard.style.display = 'block';
       gameWrap.classList.remove('visible');
       winOverlay.classList.remove('visible');
+      resetTokenLayer();
       renderLobby(state);
     } else if(state.status === 'playing'){
       lobbyCard.style.display = 'none'; homeCard.style.display = 'none';
       winOverlay.classList.remove('visible');
       gameWrap.classList.add('visible');
       if(!boardBuilt){ buildBoard(); boardBuilt = true; }
-      renderTokens(state); renderScore(state); updateTurnUI(state);
+      animateAndRenderTokens(state); renderScore(state); updateTurnUI(state);
     } else if(state.status === 'finished'){
       gameWrap.classList.add('visible');
       if(!boardBuilt){ buildBoard(); boardBuilt = true; }
-      renderTokens(state); renderScore(state); showWin(state);
+      animateAndRenderTokens(state); renderScore(state); showWin(state);
     }
   }
 
@@ -526,9 +527,6 @@ if(isConfigured){
       label.className = 'num';
       label.textContent = num;
       cell.appendChild(label);
-      const tokens = document.createElement('div');
-      tokens.className = 'tokens'; tokens.id = 'tokens-' + num;
-      cell.appendChild(tokens);
       boardGrid.appendChild(cell);
     }
     drawOverlay();
@@ -738,15 +736,134 @@ if(isConfigured){
   }
 
   function renderTokens(state){
-    document.querySelectorAll('.tokens').forEach(t=> t.innerHTML='');
+    positionAllTokensInstant(state);
+  }
+
+  // ---------- animated token layer (walks step-by-step like a board game piece) ----------
+  let lastPositions = null;
+
+  function ensureTokenLayer(){
+    let layer = document.getElementById('tokenLayer');
+    if(!layer){
+      layer = document.createElement('div');
+      layer.id = 'tokenLayer';
+      layer.style.position = 'absolute';
+      layer.style.inset = '0';
+      layer.style.pointerEvents = 'none';
+      layer.style.zIndex = '5';
+      document.querySelector('.board-outer').appendChild(layer);
+    }
+    return layer;
+  }
+
+  function ensurePlayerToken(playerId, colorIdx){
+    const layer = ensureTokenLayer();
+    let el = document.getElementById('token-' + playerId);
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'token-' + playerId;
+      el.style.position = 'absolute';
+      el.style.width = '6.6%';
+      el.style.height = '6.6%';
+      el.style.borderRadius = '50%';
+      el.style.background = PLAYER_COLORS[colorIdx];
+      el.style.border = '2px solid rgba(255,255,255,0.9)';
+      el.style.boxShadow = '0 3px 5px rgba(74,68,89,0.35), inset 0 -2px 2px rgba(0,0,0,0.15)';
+      el.style.transform = 'translate(-50%,-50%)';
+      el.style.left = '0%'; el.style.top = '0%';
+      layer.appendChild(el);
+    }
+    return el;
+  }
+
+  function tokenXY(cellNum, colorIdx){
+    const c = cellCenterPct(cellNum);
+    const dx = (colorIdx % 2 === 0) ? -1.8 : 1.8;
+    const dy = (colorIdx < 2) ? -1.8 : 1.8;
+    return { x: c.x + dx, y: c.y + dy };
+  }
+
+  function setTokenPosition(player, idx, cellNum, mode){
+    const el = ensurePlayerToken(player.id, idx);
+    const {x, y} = tokenXY(cellNum, idx);
+    if(mode === 'hop'){
+      el.style.transition = 'left 0.2s ease, top 0.2s ease';
+    } else if(mode === 'slide'){
+      el.style.transition = 'left 0.5s cubic-bezier(.4,.1,.3,1), top 0.5s cubic-bezier(.4,.1,.3,1)';
+    } else {
+      el.style.transition = 'none';
+    }
+    el.style.left = x + '%';
+    el.style.top = y + '%';
+  }
+
+  function positionAllTokensInstant(state){
+    state.players.forEach((p, i)=> setTokenPosition(p, i, state.positions[p.id] || 1, 'none'));
+  }
+
+  function resetTokenLayer(){
+    const layer = document.getElementById('tokenLayer');
+    if(layer) layer.innerHTML = '';
+    lastPositions = null;
+  }
+
+  // Walks a token cell-by-cell like a physical board game piece, then a
+  // slightly slower "slide" if it lands on a ladder/snake and jumps further.
+  function animateAndRenderTokens(state){
+    if(!lastPositions){
+      lastPositions = {};
+      state.players.forEach(p=> lastPositions[p.id] = state.positions[p.id] || 1);
+      positionAllTokensInstant(state);
+      return;
+    }
+
+    let movedPlayer = null, movedIdx = -1;
     state.players.forEach((p, i)=>{
-      const pos = state.positions[p.id] || 1;
-      const holder = document.getElementById('tokens-' + pos);
-      if(!holder) return;
-      const tok = document.createElement('div');
-      tok.className = 'token'; tok.style.background = PLAYER_COLORS[i];
-      holder.appendChild(tok);
+      if(movedPlayer) return;
+      if((lastPositions[p.id] || 1) !== (state.positions[p.id] || 1)){ movedPlayer = p; movedIdx = i; }
     });
+
+    if(!movedPlayer){
+      positionAllTokensInstant(state);
+      lastPositions = {};
+      state.players.forEach(p=> lastPositions[p.id] = state.positions[p.id] || 1);
+      return;
+    }
+
+    // keep everyone else exactly where they are
+    state.players.forEach((p, i)=>{
+      if(p.id !== movedPlayer.id) setTokenPosition(p, i, state.positions[p.id] || 1, 'none');
+    });
+
+    const oldPos = lastPositions[movedPlayer.id] || 1;
+    const newPos = state.positions[movedPlayer.id] || 1;
+    const roll = state.lastRoll || 0;
+    let forwardPos = oldPos + roll;
+    if(roll <= 0 || forwardPos > 100) forwardPos = oldPos;
+
+    const steps = [];
+    for(let s = oldPos + 1; s <= forwardPos; s++) steps.push(s);
+
+    let i = 0;
+    function stepNext(){
+      if(i < steps.length){
+        setTokenPosition(movedPlayer, movedIdx, steps[i], 'hop');
+        i++;
+        setTimeout(stepNext, 230);
+      } else {
+        if(forwardPos !== newPos){
+          setTimeout(()=>{
+            setTokenPosition(movedPlayer, movedIdx, newPos, 'slide');
+          }, 180);
+        }
+        lastPositions[movedPlayer.id] = newPos;
+      }
+    }
+    if(steps.length === 0){
+      lastPositions[movedPlayer.id] = newPos;
+    } else {
+      stepNext();
+    }
   }
 
   function renderScore(state){
