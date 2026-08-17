@@ -83,13 +83,19 @@
   .board-panel{ background:var(--paper); border-radius:26px; box-shadow:var(--shadow); padding:16px; }
   .board-outer{ position:relative; width:min(90vw,560px); aspect-ratio:1/1; }
   .board-grid{ position:relative; width:100%; height:100%; display:grid; grid-template-columns:repeat(10,1fr); grid-template-rows:repeat(10,1fr); border-radius:18px; overflow:hidden; border:5px solid #EFE6F9; }
-  .cell{ position:relative; font-family:'Baloo 2',sans-serif; font-size:clamp(8px,1.6vw,12px); font-weight:700; color:rgba(74,68,89,0.45); padding:3px 4px; }
-  .cell .tokens{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:2px; flex-wrap:wrap; padding:10px 2px 2px; }
-  .token{ width:22%; aspect-ratio:1/1; border-radius:50%; box-shadow:0 2px 4px rgba(0,0,0,0.25), inset 0 -2px 2px rgba(0,0,0,0.15); border:1.5px solid rgba(255,255,255,0.7); }
-  .cell.start{ background:#BFEBDA; }
-  .cell.finish{ background: linear-gradient(135deg,#FFEAAE,#FFC7D2); }
-  .cell.finish::after{ content:"🏁"; position:absolute; right:2px; bottom:1px; font-size:14px; }
-  svg.overlay{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+  .cell{ position:relative; font-family:'Baloo 2',sans-serif; font-size:clamp(8px,1.6vw,12px); font-weight:700; color:rgba(74,68,89,0.55); padding:3px 4px; }
+  .cell .tokens{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:2px; flex-wrap:wrap; padding:10px 2px 2px; z-index:3; }
+  .token{ width:22%; aspect-ratio:1/1; border-radius:50%; box-shadow:0 2px 4px rgba(0,0,0,0.25), inset 0 -2px 2px rgba(0,0,0,0.15); border:1.5px solid rgba(255,255,255,0.8); }
+  .cell.tile-a{ background:#C9EBCE; }
+  .cell.tile-b{ background:#FFF3B8; }
+  .cell.start{ background:#AEE3D6 !important; }
+  .cell.finish{
+    background: radial-gradient(circle at 50% 40%, #FFE9A8 0%, #FFD9C2 55%, #FFC7D2 100%) !important;
+    color:#8A6A2E;
+  }
+  .cell.finish .num{ position:relative; z-index:2; }
+  .cell.finish::after{ content:"🏆"; position:absolute; right:1px; bottom:0px; font-size:16px; z-index:2; }
+  svg.overlay{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2; }
 
   .side-panel{ width:300px; display:flex; flex-direction:column; gap:16px; }
   .turn-card{ background:var(--paper); border-radius:22px; box-shadow:var(--shadow); padding:20px; text-align:center; }
@@ -267,13 +273,13 @@
    ====================================================================== */
 
 const firebaseConfig = {
-  apiKey: "FIREBASE_CONFIG_DI_SINI",
-  authDomain: "FIREBASE_CONFIG_DI_SINI",
-  databaseURL: "FIREBASE_CONFIG_DI_SINI",
-  projectId: "FIREBASE_CONFIG_DI_SINI",
-  storageBucket: "FIREBASE_CONFIG_DI_SINI",
-  messagingSenderId: "FIREBASE_CONFIG_DI_SINI",
-  appId: "FIREBASE_CONFIG_DI_SINI"
+  apiKey: "AIzaSyDxV3SpjyuhOBSSKH_w2wLPF6rg7bHVN6E",
+  authDomain: "ins-game.firebaseapp.com",
+  databaseURL: "https://ins-game-default-rtdb.firebaseio.com",
+  projectId: "ins-game",
+  storageBucket: "ins-game.firebasestorage.app",
+  messagingSenderId: "555317125305",
+  appId: "1:555317125305:web:e480721ce6a324a7adbb68"
 };
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
@@ -281,7 +287,7 @@ import {
   getDatabase, ref, set, get, onValue, off
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
-const isConfigured = !Object.values(firebaseConfig).some(v => v === "FIREBASE_CONFIG_DI_SINI");
+const isConfigured = !Object.values(firebaseConfig).some(v => v === "FIREBASE_CONFIG_DI_SINI" || v === "GANTI_DENGAN_DATABASE_URL");
 document.getElementById('setupBanner').classList.toggle('show', !isConfigured);
 
 let app, db;
@@ -511,12 +517,13 @@ if(isConfigured){
     for(let num=1; num<=100; num++){
       const {row, col} = cellRC(num);
       const cell = document.createElement('div');
-      cell.className = 'cell';
+      cell.className = 'cell ' + (((row+col) % 2 === 0) ? 'tile-a' : 'tile-b');
       if(num===1) cell.classList.add('start');
       if(num===100) cell.classList.add('finish');
       cell.style.gridRowStart = row+1;
       cell.style.gridColumnStart = col+1;
       const label = document.createElement('span');
+      label.className = 'num';
       label.textContent = num;
       cell.appendChild(label);
       const tokens = document.createElement('div');
@@ -532,46 +539,202 @@ if(isConfigured){
     return { x:(col+0.5)*10, y:(row+0.5)*10 };
   }
 
+  const SNAKE_PALETTE = [
+    {body:'#F6A6C8', edge:'#E0709F', pattern:'#FFE1EF', pattern2:'#D9558A'}, // pastel pink
+    {body:'#C6A8EE', edge:'#9C6FD6', pattern:'#E9DBFF', pattern2:'#8558C4'}, // pastel purple
+    {body:'#8FD9D0', edge:'#4FB3A6', pattern:'#D6F5F0', pattern2:'#3C9A8E'}, // pastel teal
+    {body:'#FFC08A', edge:'#E8965A', pattern:'#FFE3C4', pattern2:'#D97C3F'}, // pastel orange
+    {body:'#B7D98A', edge:'#8CB85A', pattern:'#E6F4CE', pattern2:'#749E43'}, // pastel olive/green
+    {body:'#8FB4EE', edge:'#5F8ADB', pattern:'#D9E7FF', pattern2:'#4A72C4'}, // pastel blue
+    {body:'#F4B6A0', edge:'#DE8264', pattern:'#FBDDD0', pattern2:'#C96B4E'}, // pastel terracotta
+    {body:'#E7A8D8', edge:'#C96FB4', pattern:'#F7DFF1', pattern2:'#B3599D'}  // pastel magenta
+  ];
+  const LADDER_PALETTE = [
+    {rail:'#C79A5B', rung:'#EAD2A0'},
+    {rail:'#B98A6E', rung:'#E8C7A9'},
+    {rail:'#8FAE7A', rung:'#D3E6BE'}
+  ];
+
+  function bezierPoint(t, p0, p1, p2, p3){
+    const mt = 1-t;
+    return {
+      x: mt*mt*mt*p0.x + 3*mt*mt*t*p1.x + 3*mt*t*t*p2.x + t*t*t*p3.x,
+      y: mt*mt*mt*p0.y + 3*mt*mt*t*p1.y + 3*mt*t*t*p2.y + t*t*t*p3.y
+    };
+  }
+  function bezierTangent(t, p0, p1, p2, p3){
+    const mt = 1-t;
+    return {
+      x: 3*mt*mt*(p1.x-p0.x) + 6*mt*t*(p2.x-p1.x) + 3*t*t*(p3.x-p2.x),
+      y: 3*mt*mt*(p1.y-p0.y) + 6*mt*t*(p2.y-p1.y) + 3*t*t*(p3.y-p2.y)
+    };
+  }
+
   function drawOverlay(){
     overlaySvg.innerHTML = '';
     const ns = 'http://www.w3.org/2000/svg';
-    function addPath(fromNum, toNum, colorMain, colorEdge, kind){
+
+    function addLadder(fromNum, toNum, palette){
       const a = cellCenterPct(fromNum), b = cellCenterPct(toNum);
       const g = document.createElementNS(ns,'g');
-      if(kind==='ladder'){
-        const dx=b.x-a.x, dy=b.y-a.y, len=Math.sqrt(dx*dx+dy*dy)||1;
-        const nx=-dy/len, ny=dx/len, offset=1.6;
-        [-1,1].forEach(side=>{
-          const line = document.createElementNS(ns,'line');
-          line.setAttribute('x1', a.x+nx*offset*side); line.setAttribute('y1', a.y+ny*offset*side);
-          line.setAttribute('x2', b.x+nx*offset*side); line.setAttribute('y2', b.y+ny*offset*side);
-          line.setAttribute('stroke', colorEdge); line.setAttribute('stroke-width','1.1'); line.setAttribute('stroke-linecap','round');
-          g.appendChild(line);
-        });
-        for(let i=1;i<5;i++){
-          const t=i/5, px=a.x+(b.x-a.x)*t, py=a.y+(b.y-a.y)*t;
-          const rung = document.createElementNS(ns,'line');
-          rung.setAttribute('x1', px+nx*offset); rung.setAttribute('y1', py+ny*offset);
-          rung.setAttribute('x2', px-nx*offset); rung.setAttribute('y2', py-ny*offset);
-          rung.setAttribute('stroke', colorMain); rung.setAttribute('stroke-width','1');
-          g.appendChild(rung);
-        }
-      } else {
-        const midx=(a.x+b.x)/2+(Math.random()-0.5)*6, midy=(a.y+b.y)/2+(Math.random()-0.5)*6;
-        const path = document.createElementNS(ns,'path');
-        path.setAttribute('d', `M ${a.x} ${a.y} Q ${midx} ${midy} ${b.x} ${b.y}`);
-        path.setAttribute('stroke', colorMain); path.setAttribute('stroke-width','2.2');
-        path.setAttribute('fill','none'); path.setAttribute('stroke-linecap','round');
-        g.appendChild(path);
-        const head = document.createElementNS(ns,'circle');
-        head.setAttribute('cx', a.x); head.setAttribute('cy', a.y); head.setAttribute('r','1.6');
-        head.setAttribute('fill', colorEdge);
-        g.appendChild(head);
+      const dx=b.x-a.x, dy=b.y-a.y, len=Math.sqrt(dx*dx+dy*dy)||1;
+      const nx=-dy/len, ny=dx/len, offset=2.3;
+      [-1,1].forEach(side=>{
+        const line = document.createElementNS(ns,'line');
+        line.setAttribute('x1', a.x+nx*offset*side); line.setAttribute('y1', a.y+ny*offset*side);
+        line.setAttribute('x2', b.x+nx*offset*side); line.setAttribute('y2', b.y+ny*offset*side);
+        line.setAttribute('stroke', palette.rail); line.setAttribute('stroke-width','1.6'); line.setAttribute('stroke-linecap','round');
+        g.appendChild(line);
+      });
+      const rungs = Math.max(4, Math.round(len/6));
+      for(let i=1;i<rungs;i++){
+        const t=i/rungs, px=a.x+(b.x-a.x)*t, py=a.y+(b.y-a.y)*t;
+        const rung = document.createElementNS(ns,'line');
+        rung.setAttribute('x1', px+nx*offset); rung.setAttribute('y1', py+ny*offset);
+        rung.setAttribute('x2', px-nx*offset); rung.setAttribute('y2', py-ny*offset);
+        rung.setAttribute('stroke', palette.rung); rung.setAttribute('stroke-width','1.3'); rung.setAttribute('stroke-linecap','round');
+        g.appendChild(rung);
       }
       overlaySvg.appendChild(g);
     }
-    Object.entries(LADDERS).forEach(([f,t])=> addPath(+f,+t,'#D9AE72','#B4823E','ladder'));
-    Object.entries(SNAKES).forEach(([f,t])=> addPath(+f,+t,'#8AD4AC','#4E9E76','snake'));
+
+    function addSnake(fromNum, toNum, palette, seed){
+      // fromNum = head (higher number), toNum = tail (lower number, where it exits)
+      const a = cellCenterPct(fromNum), b = cellCenterPct(toNum);
+      const dx=b.x-a.x, dy=b.y-a.y, len=Math.sqrt(dx*dx+dy*dy)||1;
+      const nx=-dy/len, ny=dx/len;
+      const wob = 5 + (seed % 3) * 1.5;
+      const p1 = { x: a.x + dx*0.33 + nx*wob, y: a.y + dy*0.33 + ny*wob };
+      const p2 = { x: a.x + dx*0.66 - nx*wob, y: a.y + dy*0.66 - ny*wob };
+      const d = `M ${a.x} ${a.y} C ${p1.x} ${p1.y}, ${p2.x} ${p2.y}, ${b.x} ${b.y}`;
+
+      const g = document.createElementNS(ns,'g');
+
+      // soft ground shadow for depth
+      const shadow = document.createElementNS(ns,'path');
+      shadow.setAttribute('d', d);
+      shadow.setAttribute('stroke', 'rgba(74,68,89,0.12)');
+      shadow.setAttribute('stroke-width','5.2');
+      shadow.setAttribute('fill','none');
+      shadow.setAttribute('stroke-linecap','round');
+      shadow.setAttribute('transform','translate(0.6,0.9)');
+      g.appendChild(shadow);
+
+      // body outline (slightly thicker, edge color) then fill body color on top
+      const outline = document.createElementNS(ns,'path');
+      outline.setAttribute('d', d);
+      outline.setAttribute('stroke', palette.edge);
+      outline.setAttribute('stroke-width','6.6');
+      outline.setAttribute('fill','none');
+      outline.setAttribute('stroke-linecap','round');
+      g.appendChild(outline);
+
+      const body = document.createElementNS(ns,'path');
+      body.setAttribute('d', d);
+      body.setAttribute('stroke', palette.body);
+      body.setAttribute('stroke-width','5.4');
+      body.setAttribute('fill','none');
+      body.setAttribute('stroke-linecap','round');
+      g.appendChild(body);
+
+      // cute diamond-shaped scale pattern following the curve (like a chunky cartoon snake)
+      const spotCount = 6;
+      for(let i=1; i<=spotCount; i++){
+        const t = i/(spotCount+1);
+        const pt = bezierPoint(t, a, p1, p2, b);
+        const tan = bezierTangent(t, a, p1, p2, b);
+        const tlen2 = Math.sqrt(tan.x*tan.x+tan.y*tan.y) || 1;
+        const angle = Math.atan2(tan.y, tan.x) * 180/Math.PI;
+        const diamond = document.createElementNS(ns,'rect');
+        diamond.setAttribute('x', pt.x - 1.3); diamond.setAttribute('y', pt.y - 1.3);
+        diamond.setAttribute('width','2.6'); diamond.setAttribute('height','2.6');
+        diamond.setAttribute('rx','0.5');
+        diamond.setAttribute('fill', i % 2 === 0 ? palette.pattern : palette.pattern2);
+        diamond.setAttribute('opacity','0.92');
+        diamond.setAttribute('transform', `rotate(${angle+45} ${pt.x} ${pt.y})`);
+        g.appendChild(diamond);
+      }
+
+      // outward-facing direction at the head (pointing away from the body)
+      const hdx = a.x - p1.x, hdy = a.y - p1.y;
+      const hlen = Math.sqrt(hdx*hdx+hdy*hdy) || 1;
+      const fx = hdx/hlen, fy = hdy/hlen; // forward (face) direction
+      const sx = -fy, sy = fx;            // side direction
+
+      // head (rounded, a bit bigger than body)
+      const headOutline = document.createElementNS(ns,'circle');
+      headOutline.setAttribute('cx', a.x); headOutline.setAttribute('cy', a.y); headOutline.setAttribute('r','4.3');
+      headOutline.setAttribute('fill', palette.edge);
+      g.appendChild(headOutline);
+      const head = document.createElementNS(ns,'circle');
+      head.setAttribute('cx', a.x); head.setAttribute('cy', a.y); head.setAttribute('r','3.6');
+      head.setAttribute('fill', palette.body);
+      g.appendChild(head);
+
+      // tiny forked tongue sticking out in front
+      const tongueBaseX = a.x + fx*3.6, tongueBaseY = a.y + fy*3.6;
+      const tongueTipX = a.x + fx*6.0, tongueTipY = a.y + fy*6.0;
+      [-1,1].forEach(side=>{
+        const tf = document.createElementNS(ns,'line');
+        tf.setAttribute('x1', tongueBaseX); tf.setAttribute('y1', tongueBaseY);
+        tf.setAttribute('x2', tongueTipX + sx*side*1.0); tf.setAttribute('y2', tongueTipY + sy*side*1.0);
+        tf.setAttribute('stroke', '#E0637A'); tf.setAttribute('stroke-width','0.6'); tf.setAttribute('stroke-linecap','round');
+        g.appendChild(tf);
+      });
+
+      // big googly eyes (white base + dark pupil), offset forward and to the sides
+      [-1,1].forEach(side=>{
+        const ex = a.x + fx*1.7 + sx*side*1.9;
+        const ey = a.y + fy*1.7 + sy*side*1.9;
+        const eyeWhite = document.createElementNS(ns,'circle');
+        eyeWhite.setAttribute('cx', ex); eyeWhite.setAttribute('cy', ey); eyeWhite.setAttribute('r','1.4');
+        eyeWhite.setAttribute('fill', '#FFFFFF');
+        eyeWhite.setAttribute('stroke', palette.edge); eyeWhite.setAttribute('stroke-width','0.3');
+        g.appendChild(eyeWhite);
+        const pupil = document.createElementNS(ns,'circle');
+        pupil.setAttribute('cx', ex + fx*0.4); pupil.setAttribute('cy', ey + fy*0.4); pupil.setAttribute('r','0.68');
+        pupil.setAttribute('fill', '#3A3548');
+        g.appendChild(pupil);
+        const shine = document.createElementNS(ns,'circle');
+        shine.setAttribute('cx', ex + fx*0.65 - 0.22); shine.setAttribute('cy', ey + fy*0.65 - 0.22); shine.setAttribute('r','0.22');
+        shine.setAttribute('fill', '#FFFFFF');
+        g.appendChild(shine);
+        // small friendly eyebrow arc above each eye
+        const brow = document.createElementNS(ns,'path');
+        const bcx = ex - fx*1.1, bcy = ey - fy*1.1;
+        brow.setAttribute('d', `M ${bcx - sx*side*0.9 - fx*0.5} ${bcy - sy*side*0.9 - fy*0.5} Q ${bcx} ${bcy - 0.3} ${bcx + sx*side*0.9 - fx*0.5} ${bcy + sy*side*0.9 - fy*0.5}`);
+        brow.setAttribute('stroke', palette.edge); brow.setAttribute('stroke-width','0.4'); brow.setAttribute('fill','none'); brow.setAttribute('stroke-linecap','round');
+        g.appendChild(brow);
+      });
+
+      // little smiling mouth
+      const smileCx = a.x + fx*2.4, smileCy = a.y + fy*2.4;
+      const smile = document.createElementNS(ns,'path');
+      smile.setAttribute('d', `M ${smileCx - sx*1.2} ${smileCy - sy*1.2} Q ${a.x + fx*3.5} ${a.y + fy*3.5} ${smileCx + sx*1.2} ${smileCy + sy*1.2}`);
+      smile.setAttribute('stroke', '#3A3548'); smile.setAttribute('stroke-width','0.45'); smile.setAttribute('fill','none'); smile.setAttribute('stroke-linecap','round');
+      g.appendChild(smile);
+
+      // rosy cheeks for extra cuteness
+      [-1,1].forEach(side=>{
+        const cx = a.x - fx*0.3 + sx*side*3.0, cy = a.y - fy*0.3 + sy*side*3.0;
+        const blush = document.createElementNS(ns,'circle');
+        blush.setAttribute('cx', cx); blush.setAttribute('cy', cy); blush.setAttribute('r','0.9');
+        blush.setAttribute('fill', '#FF9FB3');
+        blush.setAttribute('opacity','0.5');
+        g.appendChild(blush);
+      });
+
+      // small tapered tail tip
+      const tail = document.createElementNS(ns,'circle');
+      tail.setAttribute('cx', b.x); tail.setAttribute('cy', b.y); tail.setAttribute('r','1.6');
+      tail.setAttribute('fill', palette.edge);
+      g.appendChild(tail);
+
+      overlaySvg.appendChild(g);
+    }
+
+    Object.entries(LADDERS).forEach(([f,t], i)=> addLadder(+f, +t, LADDER_PALETTE[i % LADDER_PALETTE.length]));
+    Object.entries(SNAKES).forEach(([f,t], i)=> addSnake(+f, +t, SNAKE_PALETTE[i % SNAKE_PALETTE.length], i));
   }
 
   function renderTokens(state){
