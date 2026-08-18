@@ -37,6 +37,45 @@
   h1{ font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(26px,5vw,40px); margin:4px 0 2px; color:#6B5B95; }
   .subtitle{ font-size:13px; color:var(--ink-soft); font-weight:600; }
 
+  .title-snake{ display:inline-block; animation: wiggle 2.4s ease-in-out infinite; transform-origin: 60% 60%; }
+  .title-ladder{ display:inline-block; animation: bounce-ladder 2.2s ease-in-out infinite; }
+  @keyframes wiggle{
+    0%,100%{ transform: rotate(-8deg); }
+    50%{ transform: rotate(10deg); }
+  }
+  @keyframes bounce-ladder{
+    0%,100%{ transform: translateY(0) rotate(-3deg); }
+    50%{ transform: translateY(-5px) rotate(3deg); }
+  }
+
+  .mascot-track{
+    position:relative;
+    height:46px;
+    max-width: 900px;
+    margin: 4px auto 0;
+    overflow:hidden;
+    pointer-events:none;
+  }
+  .mascot-snake{
+    position:absolute;
+    top:50%;
+    width:56px; height:34px;
+    left:-12%;
+    transform: translateY(-50%);
+    animation: slither-move 8s linear infinite;
+  }
+  @keyframes slither-move{
+    0%{   left:-12%;  transform: translateY(-50%) rotate(-8deg); }
+    12.5%{ transform: translateY(calc(-50% - 7px)) rotate(8deg); }
+    25%{  left:24%;   transform: translateY(-50%) rotate(-8deg); }
+    37.5%{ transform: translateY(calc(-50% + 7px)) rotate(8deg); }
+    50%{  left:56%;   transform: translateY(-50%) rotate(-8deg); }
+    62.5%{ transform: translateY(calc(-50% - 7px)) rotate(8deg); }
+    75%{  left:88%;   transform: translateY(-50%) rotate(-8deg); }
+    87.5%{ transform: translateY(calc(-50% + 7px)) rotate(8deg); }
+    100%{ left:112%;  transform: translateY(-50%) rotate(-8deg); }
+  }
+
   .setup-banner{
     max-width: 620px; margin: 0 auto 18px; background:#FFF3D6; border:2px solid #F3D98A;
     border-radius:16px; padding:14px 18px; font-size:13px; font-weight:700; color:#7A5C10; display:none;
@@ -263,8 +302,26 @@
 
 <div class="app">
   <header>
-    <h1>🐍 Ular &amp; Tangga 🪜</h1>
+    <h1><span class="title-snake">🐍</span> Ular &amp; Tangga <span class="title-ladder">🪜</span></h1>
     <div class="subtitle">Multiplayer online — main bareng dari HP masing-masing lewat internet</div>
+    <div class="mascot-track" aria-hidden="true">
+      <svg class="mascot-snake" viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 45 C 24 8, 46 55, 60 24 C 68 8, 80 14, 86 24" stroke="#E0709F" stroke-width="15" fill="none" stroke-linecap="round"/>
+        <path d="M8 45 C 24 8, 46 55, 60 24 C 68 8, 80 14, 86 24" stroke="#F6A6C8" stroke-width="11" fill="none" stroke-linecap="round"/>
+        <circle cx="86" cy="24" r="13" fill="#E0709F"/>
+        <circle cx="86" cy="24" r="10.5" fill="#F6A6C8"/>
+        <circle cx="91" cy="18" r="3.2" fill="#FFFFFF"/>
+        <circle cx="92" cy="17.4" r="1.5" fill="#3A3548"/>
+        <circle cx="91" cy="29" r="3.2" fill="#FFFFFF"/>
+        <circle cx="92" cy="29.6" r="1.5" fill="#3A3548"/>
+        <path d="M79 30 Q86 34 93 30" stroke="#3A3548" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+        <circle cx="80" cy="30" r="2" fill="#FF9FB3" opacity="0.6"/>
+        <circle cx="92" cy="30" r="2" fill="#FF9FB3" opacity="0.6"/>
+        <line x1="97" y1="24" x2="104" y2="24" stroke="#E0637A" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="104" y1="24" x2="107" y2="21" stroke="#E0637A" stroke-width="1.1" stroke-linecap="round"/>
+        <line x1="104" y1="24" x2="107" y2="27" stroke="#E0637A" stroke-width="1.1" stroke-linecap="round"/>
+      </svg>
+    </div>
   </header>
 
   <div class="setup-banner" id="setupBanner">
